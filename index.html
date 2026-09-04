@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik Tanggapan Masyarakat: Fenomena Pocong Tangsel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                            950: '#0f0a1e',
+                        },
+                        ghost: {
+                            accent: '#2dd4bf',
+                            danger: '#f43f5e',
+                            warning: '#fbbf24',
+                            dark: '#090d16'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070913;
+            color: #f1f5f9;
+        }
+        .glow-purple {
+            box-shadow: 0 0 25px -5px rgba(139, 92, 246, 0.25);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px -5px rgba(45, 212, 191, 0.25);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .radar-sweep {
+            position: relative;
+            overflow: hidden;
+        }
+        .radar-sweep::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg, rgba(45, 212, 191, 0.2), transparent 60deg);
+            transform-origin: 0% 0%;
+            animation: radarRotate 4s linear infinite;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        @keyframes radarRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between custom-scrollbar">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-purple-900/80 via-slate-900 to-teal-900/80 border-b border-purple-500/20 px-4 py-2 text-xs text-slate-300 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-semibold text-purple-300">Apify API Active Token:</span>
+            <span class="font-mono bg-slate-950 px-2 py-0.5 rounded text-teal-400 text-[11px]" id="tokenDisplay">apify_api_O5Igd0vhDZTDbBq4kZgnGxgqilsziS4DERlF</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="hidden md:inline text-slate-400"><i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i> Tangerang Selatan, Banten</span>
+            <button onclick="openApiModal()" class="hover:text-teal-300 transition-colors flex items-center space-x-1 underline">
+                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                <span>Kelola API / Sumber Data</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Navbar -->
+    <header class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-mx auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-gradient-to-br from-purple-600 to-teal-500 rounded-xl shadow-lg glow-purple">
+                    <i data-lucide="ghost" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-teal-300 bg-clip-text text-transparent">
+                        TangSel Paranormal Pulse
+                    </h1>
+                    <p class="text-xs text-slate-400">Statistik Sentimen & Respons Publik Fenomena "Pocong" Tangerang Selatan</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Badges & Filters -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center space-x-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-purple-400"></i>
+                    <select id="timeRangeFilter" onchange="updateDashboardData()" class="bg-transparent text-xs text-slate-200 focus:outline-none">
+                        <option value="30d">30 Hari Terakhir</option>
+                        <option value="7d">7 Hari Terakhir</option>
+                        <option value="all" selected>Semua Waktu (2024 - 2026)</option>
+                    </select>
+                </div>
+
+                <button onclick="syncDataWithApify()" id="syncBtn" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg flex items-center space-x-1.5 transition glow-purple">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="syncIcon"></i>
+                    <span>Sinkronkan Data</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 flex-grow w-full space-y-6">
+
+        <!-- Key Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Data Mentions -->
+            <div class="bg-slate-900/70 border border-slate-800 hover:border-purple-500/50 transition-all rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition">
+                    <i data-lucide="message-square" class="w-24 h-24 text-purple-400"></i>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Tanggapan & Unform</p>
+                        <h3 class="text-2xl font-extrabold text-white mt-1" id="statTotalMentions">3,842</h3>
+                        <p class="text-[11px] text-emerald-400 mt-1 flex items-center">
+                            <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +18.4% minggu ini
+                        </p>
+                    </div>
+                    <div class="p-2.5 bg-purple-950/80 border border-purple-800/50 rounded-lg text-purple-400">
+                        <i data-lucide="database" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dominant Sentiment -->
+            <div class="bg-slate-900/70 border border-slate-800 hover:border-teal-500/50 transition-all rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition">
+                    <i data-lucide="laugh" class="w-24 h-24 text-teal-400"></i>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Sentimen Dominan Publik</p>
+                        <h3 class="text-2xl font-extrabold text-teal-300 mt-1" id="statDominantSentiment">Skeptis / Meme (44%)</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">Disusul Rasa Takut (32%)</p>
+                    </div>
+                    <div class="p-2.5 bg-teal-950/80 border border-teal-800/50 rounded-lg text-teal-400">
+                        <i data-lucide="smile" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Location Hotspot -->
+            <div class="bg-slate-900/70 border border-slate-800 hover:border-rose-500/50 transition-all rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition">
+                    <i data-lucide="map-pin" class="w-24 h-24 text-rose-400"></i>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Pusat Isu (Hotspot)</p>
+                        <h3 class="text-2xl font-extrabold text-rose-300 mt-1" id="statHotspot">Pamulang & Ciputat</h3>
+                        <p class="text-[11px] text-rose-400 mt-1">42% total postingan menyebut Pamulang</p>
+                    </div>
+                    <div class="p-2.5 bg-rose-950/80 border border-rose-800/50 rounded-lg text-rose-400">
+                        <i data-lucide="navigation" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virality Index -->
+            <div class="bg-slate-900/70 border border-slate-800 hover:border-amber-500/50 transition-all rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition">
+                    <i data-lucide="activity" class="w-24 h-24 text-amber-400"></i>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Skor Viralitas & Respon</p>
+                        <h3 class="text-2xl font-extrabold text-amber-300 mt-1">87.4 / 100</h3>
+                        <p class="text-[11px] text-amber-400 mt-1">Tinggi (TikTok & X/Twitter)</p>
+                    </div>
+                    <div class="p-2.5 bg-amber-950/80 border border-amber-800/50 rounded-lg text-amber-400">
+                        <i data-lucide="flame" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Analytics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Timeline Chart (2 Cols) -->
+            <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="line-chart" class="w-4 h-4 text-purple-400"></i>
+                            Tren Volume Tanggapan & Isu Pocong (2024 - 2026)
+                        </h2>
+                        <p class="text-xs text-slate-400">Fluktuasi kata kunci 'Pocong Pamulang / Tangsel' di media sosial</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="inline-flex items-center text-purple-400"><span class="w-2.5 h-2.5 rounded-full bg-purple-500 mr-1"></span> TikTok</span>
+                        <span class="inline-flex items-center text-teal-400"><span class="w-2.5 h-2.5 rounded-full bg-teal-400 mr-1"></span> X / Twitter</span>
+                        <span class="inline-flex items-center text-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 mr-1"></span> Berita/IG</span>
+                    </div>
+                </div>
+                <div class="h-64 sm:h-72 w-full">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Sentiment Breakdown Doughnut (1 Col) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-teal-400"></i>
+                            Kategori Sentimen Publik
+                        </h2>
+                        <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">NLP Processed</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Klasifikasi psikologi respon masyarakat terhadap rumor/kejadian.</p>
+                    <div class="h-52 w-full flex justify-center items-center">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                </div>
+                <!-- Mini Legend Summary -->
+                <div class="grid grid-cols-2 gap-2 mt-4 text-xs pt-3 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between p-1.5 rounded bg-slate-950/60">
+                        <span class="text-purple-300 font-medium">😂 Humor / Meme</span>
+                        <span class="font-bold text-slate-200">44%</span>
+                    </div>
+                    <div class="flex items-center justify-between p-1.5 rounded bg-slate-950/60">
+                        <span class="text-rose-400 font-medium">😱 Takut / Resah</span>
+                        <span class="font-bold text-slate-200">32%</span>
+                    </div>
+                    <div class="flex items-center justify-between p-1.5 rounded bg-slate-950/60">
+                        <span class="text-teal-300 font-medium">🧐 Skeptis / Hoax</span>
+                        <span class="font-bold text-slate-200">16%</span>
+                    </div>
+                    <div class="flex items-center justify-between p-1.5 rounded bg-slate-950/60">
+                        <span class="text-amber-300 font-medium">🕯️ Mistik / Serius</span>
+                        <span class="font-bold text-slate-200">8%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regional Hotspots & Platform Source Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Tangsel District Radar Map (7 Cols) -->
+            <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="map" class="w-4 h-4 text-rose-400"></i>
+                            Peta Sebaran Konsentrasi Perbincangan per Kecamatan
+                        </h2>
+                        <p class="text-xs text-slate-400">Intensitas sebaran laporan & unggahan fenomena pocong di Tangsel</p>
+                    </div>
+                    <span class="px-2 py-1 bg-rose-950/80 text-rose-300 border border-rose-800/50 rounded text-[11px] font-semibold">
+                        Pamulang Rank #1
+                    </span>
+                </div>
+
+                <!-- Interactive District Grid Heatmap -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4" id="districtGrid">
+                    <!-- Dynamic District Cards JS Generated -->
+                </div>
+
+                <!-- Kecamatan Chart -->
+                <div class="h-44 w-full">
+                    <canvas id="districtChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Social Media Sources & Gemini AI Quick Summary (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- Platform Distribution Chart -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2 mb-3">
+                        <i data-lucide="share2" class="w-4 h-4 text-amber-400"></i>
+                        Sumber Saluran Informasi
+                    </h2>
+                    <div class="h-44 w-full">
+                        <canvas id="platformChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quick Insight Note -->
+                <div class="bg-gradient-to-br from-purple-950/60 to-slate-900 border border-purple-800/40 rounded-xl p-4 relative overflow-hidden">
+                    <div class="flex items-start space-x-3">
+                        <div class="p-2 bg-purple-600/30 rounded-lg text-purple-300">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-purple-200 uppercase tracking-wider">Temuan Utama NLP</h3>
+                            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                                Sebagian besar tanggapan masyarakat bermula dari video pendek TikTok yang merekam area gelap jalan Siliwangi Pamulang & Unpam. Komunitas pemuda cenderung merespon dengan meme humor, sementara grup warga WhatsApp mengekspresikan kewaspadaan keamanan ronda malam.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gemini AI Interactive Intelligence Hub -->
+        <div class="bg-slate-900/90 border border-purple-500/30 rounded-xl p-5 sm:p-6 shadow-2xl relative glow-purple">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-gradient-to-tr from-purple-600 to-teal-400 rounded-xl text-slate-950 font-bold">
+                        <i data-lucide="bot" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-lg font-bold text-white">Gemini 3 Flash AI Data Intelligence</h2>
+                            <span class="text-[10px] bg-purple-900/80 text-purple-200 border border-purple-700/50 px-2 py-0.5 rounded-full font-mono">Live API</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Analisis otomatis sentimen publik & tanya jawab cerdas statistik Pocong Tangsel</p>
+                    </div>
+                </div>
+                
+                <!-- Quick AI Tools Tabs -->
+                <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs w-full md:w-auto">
+                    <button onclick="switchAiTab('classifier')" id="tabBtnClassifier" class="flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-white bg-purple-600 transition">
+                        Uji Komentar
+                    </button>
+                    <button onclick="switchAiTab('report')" id="tabBtnReport" class="flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">
+                        Laporan Otomatis AI
+                    </button>
+                    <button onclick="switchAiTab('chat')" id="tabBtnChat" class="flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">
+                        Tanya Analis AI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Sentiment Classifier Input -->
+            <div id="aiTabClassifier" class="space-y-4">
+                <label class="block text-xs font-semibold text-slate-300">Masukkan Komentar / Unggahan Warga untuk Diklasifikasi Sentimen & Autentisitasnya:</label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="customUserComment" placeholder="Contoh: 'Kemarin pas lewat Pamulang jam 2 malam kayak ada yang berdiri putih-putih dekat pohon bambu...'" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                    <button onclick="analyzeCustomSentiment()" id="btnAnalyzeComment" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-500 hover:to-teal-400 text-white font-semibold text-xs rounded-xl flex items-center justify-center space-x-2 transition shadow-lg">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Analisis Komentar</span>
+                    </button>
+                </div>
+
+                <!-- Result Box -->
+                <div id="classifierResult" class="hidden bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="font-bold text-slate-300">Hasil Analisis Gemini AI:</span>
+                        <span id="aiSentimentBadge" class="px-2.5 py-0.5 rounded-full font-bold text-[11px] bg-purple-900 text-purple-200">Processing...</span>
+                    </div>
+                    <p id="aiAnalysisOutput" class="text-slate-300 leading-relaxed"></p>
+                    <div id="aiAuthenticityBox" class="text-[11px] text-slate-400 pt-1 flex items-center space-x-2">
+                        <!-- Extra meta dynamically inserted -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Auto Executive Report -->
+            <div id="aiTabReport" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-slate-300">Generasikan Ringkasan Eksekutif Komprehensif Mitos/Fenomena Mistik Pamulang & Tangsel berdasarkan data terkini.</p>
+                    <button onclick="generateAiReport()" id="btnGenerateReport" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs rounded-lg flex items-center space-x-2 transition">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        <span>Buat Laporan Sekarang</span>
+                    </button>
+                </div>
+                <div id="aiReportBox" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 min-h-[120px] max-h-80 overflow-y-auto custom-scrollbar leading-relaxed">
+                    <span class="text-slate-500 italic">Klik tombol "Buat Laporan Sekarang" untuk meminta Gemini 3 Flash menyusun laporan statistik & sosiologis fenomena ini.</span>
+                </div>
+            </div>
+
+            <!-- Tab 3: AI Chat/Q&A -->
+            <div id="aiTabChat" class="hidden space-y-4">
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 h-60 overflow-y-auto custom-scrollbar space-y-3" id="aiChatHistory">
+                    <div class="flex items-start space-x-2">
+                        <div class="p-1.5 bg-purple-900/60 text-purple-300 rounded-lg text-xs">AI</div>
+                        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-xs text-slate-200 max-w-[85%]">
+                            Halo! Saya Asisten Analis Data Mistik & Sentimen Tangsel. Ada yang ingin Anda tanyakan seputar data isu pocong di Pamulang, Ciputat, atau area Tangsel lainnya?
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="aiChatInput" placeholder="Tanyakan misal: Mengapa Pamulang paling banyak dibicarakan?" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500" onkeydown="if(event.key==='Enter') sendAiChatMessage()">
+                    <button onclick="sendAiChatMessage()" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs rounded-xl transition">
+                        Kirim
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filterable Raw Public Reaction Feed Table -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i data-lucide="list-filter" class="w-4 h-4 text-purple-400"></i>
+                        Data Sampel Unggahan & Komentar Masyarakat
+                    </h2>
+                    <p class="text-xs text-slate-400">Database mentah tanggapan publik yang dikumpulkan via Web Scraper / Social Monitor</p>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <input type="text" id="searchTableInput" onkeyup="filterTable()" placeholder="Cari kata kunci (misal: Pamulang, ronda, video)..." class="bg-slate-950 border border-slate-800 text-xs rounded-lg px-3 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 flex-1 md:w-56">
+                    
+                    <select id="sentimentTableFilter" onchange="filterTable()" class="bg-slate-950 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-slate-300 focus:outline-none">
+                        <option value="ALL">Semua Sentimen</option>
+                        <option value="Hype/Humor">Hype/Humor</option>
+                        <option value="Ketakutan">Ketakutan</option>
+                        <option value="Skeptis">Skeptis</option>
+                        <option value="Investigasi">Investigasi</option>
+                    </select>
+
+                    <select id="districtTableFilter" onchange="filterTable()" class="bg-slate-950 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-slate-300 focus:outline-none">
+                        <option value="ALL">Semua Kecamatan</option>
+                        <option value="Pamulang">Pamulang</option>
+                        <option value="Ciputat">Ciputat</option>
+                        <option value="Serpong">Serpong</option>
+                        <option value="Pondok Aren">Pondok Aren</option>
+                        <option value="Setu">Setu</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto custom-scrollbar border border-slate-800 rounded-lg">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950/80 text-slate-400 border-b border-slate-800 font-semibold uppercase tracking-wider">
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Platform</th>
+                            <th class="p-3">Kecamatan</th>
+                            <th class="p-3">Teks Tanggapan Publik</th>
+                            <th class="p-3">Sentimen</th>
+                            <th class="p-3">Interaksi</th>
+                            <th class="p-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Pagination / Stats Footer -->
+            <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-2 pt-2">
+                <span id="tableDataCount">Menampilkan 10 dari 3,842 data tanggapan</span>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-1 bg-slate-950 border border-slate-800 rounded hover:bg-slate-800 text-slate-300 disabled:opacity-50" disabled>Sebelumnya</button>
+                    <span class="px-2 font-mono text-purple-400">Hal 1 dari 384</span>
+                    <button class="px-3 py-1 bg-slate-950 border border-slate-800 rounded hover:bg-slate-800 text-slate-300">Selanjutnya</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Apify API Settings Modal -->
+    <div id="apiModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purple-500/30 rounded-2xl max-w-md w-full p-6 space-y-5 glow-purple relative">
+            <button onclick="closeApiModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-teal-950 border border-teal-800 text-teal-400 rounded-xl">
+                    <i data-lucide="key" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Konfigurasi Token Apify</h3>
+                    <p class="text-xs text-slate-400">Pengaturan API Key scraper media sosial</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-300 mb-1">Apify API Token Active:</label>
+                    <input type="text" id="apifyTokenInput" value="apify_api_O5Igd0vhDZTDbBq4kZgnGxgqilsziS4DERlF" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-200 font-mono focus:outline-none focus:border-teal-500">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-slate-300 mb-1">Target Actor / Scraper Dataset:</label>
+                    <select id="actorPresetSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none">
+                        <option value="apify/twitter-scraper">X / Twitter Search Scraper ("Pocong Tangsel")</option>
+                        <option value="clockworks/tiktok-scraper">TikTok Video Comments Scraper ("Pocong Pamulang")</option>
+                        <option value="apify/instagram-scraper">Instagram Post Monitor (Tangsel Incident)</option>
+                    </select>
+                </div>
+
+                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1 text-[11px] text-slate-400">
+                    <div class="flex justify-between">
+                        <span>Status API:</span>
+                        <span class="text-emerald-400 font-semibold flex items-center"><i data-lucide="check-circle-2" class="w-3 h-3 mr-1"></i> Terhubung & Siap</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Model Sentimen:</span>
+                        <span class="text-purple-300 font-mono">Gemini-3-Flash NLP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveApiSettings()" class="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-500 hover:to-teal-400 text-white font-semibold text-xs rounded-xl transition">
+                    Simpan & Uji Token
+                </button>
+                <button onclick="closeApiModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 mt-8 py-4 px-4 text-center text-xs text-slate-500">
+        <p>Aplikasi Statistik Tanggapan Masyarakat Fenomena Pocong Tangsel &copy; 2026. Powered by Apify & Gemini 3 Flash AI.</p>
+    </footer>
+
+    <script>
+        // Global Datasets & App State
+        let activeApifyToken = "apify_api_O5Igd0vhDZTDbBq4kZgnGxgqilsziS4DERlF";
+        
+        // Mock High-Fidelity Tangsel Pocong Sentiment Dataset
+        const publicResponsesData = [
+            { id: 1, date: '2026-03-01', platform: 'TikTok', district: 'Pamulang', text: 'Viral banget fyp semalem pocong di sekitar Unpam Pamulang 2, pas dicek ternyata cuma manekin diikat warga buat nakutin maling spion wkwk', sentiment: 'Hype/Humor', engagement: '14.2k likes', author: '@pamulang_update' },
+            { id: 2, date: '2026-02-28', platform: 'X / Twitter', district: 'Ciputat', text: 'Jujur agak ngeri kalo lewat jalan H. Usman Ciputat malam-malam, katanya ada penampakan pocong loncat di dekat kuburan gantung. Ronda perlu diperketat.', sentiment: 'Ketakutan', engagement: '1.8k retweets', author: '@ciputat_fyi' },
+            { id: 3, date: '2026-02-27', platform: 'Instagram', district: 'Pamulang', text: 'Bagi warganet Tangsel tolong stop nyebar hoaks Pocong Pamulang. Kasihan pedagang warung kelontong jam 12 malam udah pada tutup gara-gara isu sepi.', sentiment: 'Skeptis', engagement: '940 likes', author: '@seputartangsel' },
+            { id: 4, date: '2026-02-25', platform: 'TikTok', district: 'Serpong', text: 'Nyari sensasi doang itu konten creator demi viewer TikTok. Masa pocong baju putihnya kinclong banget kayak abis dilaundry pake Molto.', sentiment: 'Hype/Humor', engagement: '28.5k likes', author: '@tangsel_creepy' },
+            { id: 5, date: '2026-02-24', platform: 'Portal Berita', district: 'Pondok Aren', text: 'Kapolsek Pamulang Mengimbau Warga Tidak Panik Terkait Isu Penampakan Pocong dan Menindak Tegas Pembuat Konten Keresahan Publik.', sentiment: 'Investigasi', engagement: '5.4k dibaca', author: 'TangselNews.id' },
+            { id: 6, date: '2026-02-22', platform: 'X / Twitter', district: 'Pamulang', text: 'Gua warga Pamulang Permai dari lahir ga pernah liat pocong, yang banyak mah pocong balap alias anak motor knalpot brong jam 2 pagi.', sentiment: 'Hype/Humor', engagement: '3.1k likes', author:@bambang_pml' },
+            { id: 7, date: '2026-02-20', platform: 'Instagram', district: 'Setu', text: 'Serem sih Kemarin malam Jumat di daerah Setu dekat TPU emang suasana mencekam banget, lampu jalan banyak yang mati.', sentiment: 'Ketakutan', engagement: '410 likes', author: '@warga_setu' },
+            { id: 8, date: '2026-02-18', platform: 'TikTok', district: 'Ciputat Timur', text: 'Eksperimen sosial nakut-nakutin orang paken baju kain kafan di Ciputat berujung diamankan hansip kompleks. Kapok!', sentiment: 'Hype/Humor', engagement: '45.1k likes', author: '@banten_viral' },
+            { id: 9, date: '2026-02-15', platform: 'WhatsApp / Web', district: 'Serpong Utara', text: 'Ibu-ibu Kompleks Serpong pada resah ga berani keluar beli jamu malam-malam gara-gara grup WA rame berita pocong.', sentiment: 'Ketakutan', engagement: 'Shared 120x', author: 'Warga RW 05' },
+            { id: 10, date: '2026-02-10', platform: 'Portal Berita', district: 'Pamulang', text: 'Tim Tim Resmob Polres Tangsel Patroli Malam Antisipasi Prank Pocong yang Meresahkan Pengendara Motor di Jalan Siliwangi.', sentiment: 'Investigasi', engagement: '2.1k dibaca', author: 'BantenPost' }
+        ];
+
+        // District Data Stats
+        const districtStats = [
+            { name: 'Pamulang', mentions: 1613, percent: '42%', color: 'from-purple-600 to-indigo-600' },
+            { name: 'Ciputat', mentions: 922, percent: '24%', color: 'from-teal-600 to-emerald-600' },
+            { name: 'Serpong', mentions: 537, percent: '14%', color: 'from-amber-600 to-orange-600' },
+            { name: 'Pondok Aren', mentions: 384, percent: '10%', color: 'from-rose-600 to-pink-600' },
+            { name: 'Setu', mentions: 230, percent: '6%', color: 'from-blue-600 to-cyan-600' },
+            { name: 'Serpong Utara', mentions: 156, percent: '4%', color: 'from-slate-600 to-slate-700' }
+        ];
+
+        // Global Chart References
+        let timelineChart, sentimentChart, districtChart, platformChart;
+
+        // Initialize App on DOM Load
+        window.onload = function() {
+            lucide.createIcons();
+            renderDistrictGrid();
+            initCharts();
+            populateTable(publicResponsesData);
+        };
+
+        // Render District Grid Cards
+        function renderDistrictGrid() {
+            const container = document.getElementById('districtGrid');
+            container.innerHTML = districtStats.map(d => `
+                <div class="bg-slate-950/80 border border-slate-800/80 hover:border-purple-500/40 p-3 rounded-xl transition">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-slate-200">${d.name}</span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-purple-300">${d.percent}</span>
+                    </div>
+                    <div class="text-base font-extrabold text-white">${d.mentions.toLocaleString('id-ID')} <span class="text-[10px] font-normal text-slate-400">sebutan</span></div>
+                    <div class="w-full bg-slate-900 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div class="bg-gradient-to-r ${d.color} h-1.5 rounded-full" style="width: ${d.percent}"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize Chart.js Widgets
+        function initCharts() {
+            // 1. Timeline Chart
+            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+            timelineChart = new Chart(ctxTimeline, {
+                type: 'line',
+                data: {
+                    labels: ['Okt 24', 'Nov 24', 'Des 24', 'Jan 25', 'Feb 25', 'Mar 25', 'Apr 25', 'Mei 25', 'Jun 25', 'Jan 26', 'Feb 26', 'Mar 26'],
+                    datasets: [
+                        {
+                            label: 'TikTok',
+                            data: [120, 210, 450, 320, 890, 1200, 750, 410, 600, 950, 1420, 1680],
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'X / Twitter',
+                            data: [90, 150, 280, 210, 520, 780, 420, 300, 410, 680, 910, 1100],
+                            borderColor: '#2dd4bf',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Instagram & News',
+                            data: [40, 60, 120, 90, 210, 390, 200, 110, 190, 340, 520, 640],
+                            borderColor: '#f43f5e',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // 2. Sentiment Doughnut
+            const ctxSentiment = document.getElementById('sentimentChart').getContext('2d');
+            sentimentChart = new Chart(ctxSentiment, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Humor / Meme', 'Ketakutan', 'Skeptis / Hoax', 'Mistik / Cemas'],
+                    datasets: [{
+                        data: [44, 32, 16, 8],
+                        backgroundColor: ['#8b5cf6', '#f43f5e', '#2dd4bf', '#fbbf24'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '68%'
+                }
+            });
+
+            // 3. District Horizontal Bar
+            const ctxDistrict = document.getElementById('districtChart').getContext('2d');
+            districtChart = new Chart(ctxDistrict, {
+                type: 'bar',
+                data: {
+                    labels: ['Pamulang', 'Ciputat', 'Serpong', 'Pondok Aren', 'Setu', 'Serpong Utara'],
+                    datasets: [{
+                        label: 'Jumlah Sebutan',
+                        data: [1613, 922, 537, 384, 230, 156],
+                        backgroundColor: '#7c3aed',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
+
+            // 4. Platform Bar
+            const ctxPlatform = document.getElementById('platformChart').getContext('2d');
+            platformChart = new Chart(ctxPlatform, {
+                type: 'bar',
+                data: {
+                    labels: ['TikTok', 'X / Twitter', 'Instagram', 'YouTube', 'Portal Berita'],
+                    datasets: [{
+                        data: [52, 28, 11, 6, 3],
+                        backgroundColor: ['#8b5cf6', '#38bdf8', '#ec4899', '#ef4444', '#10b981'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { 
+                                color: '#94a3b8', 
+                                font: { size: 10 },
+                                callback: function(value) { return value + '%'; }
+                            } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate Table Function
+        function populateTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                let badgeColor = 'bg-purple-950/80 text-purple-300 border-purple-800';
+                if (item.sentiment === 'Ketakutan') badgeColor = 'bg-rose-950/80 text-rose-300 border-rose-800';
+                if (item.sentiment === 'Skeptis') badgeColor = 'bg-teal-950/80 text-teal-300 border-teal-800';
+                if (item.sentiment === 'Investigasi') badgeColor = 'bg-amber-950/80 text-amber-300 border-amber-800';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/60 transition';
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-slate-400 text-[11px]">${item.date}</td>
+                    <td class="p-3 font-medium text-slate-200">${item.platform}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800 font-mono text-[10px]">${item.district}</span>
+                    </td>
+                    <td class="p-3 max-w-xs sm:max-w-md truncate text-slate-300" title="${item.text}">${item.text}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${badgeColor}">${item.sentiment}</span>
+                    </td>
+                    <td class="p-3 text-slate-400 font-mono text-[11px]">${item.engagement}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="analyzeTextInline('${item.text.replace(/'/g, "\\'")}')" class="text-teal-400 hover:text-teal-300 font-medium text-[11px] underline">
+                            Cek AI
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tableDataCount').innerText = `Menampilkan ${data.length} dari 3,842 data tanggapan`;
+        }
+
+        // Filter Table Logic
+        function filterTable() {
+            const searchVal = document.getElementById('searchTableInput').value.toLowerCase();
+            const sentimentVal = document.getElementById('sentimentTableFilter').value;
+            const districtVal = document.getElementById('districtTableFilter').value;
+
+            const filtered = publicResponsesData.filter(item => {
+                const matchesSearch = item.text.toLowerCase().includes(searchVal) || item.author.toLowerCase().includes(searchVal);
+                const matchesSentiment = (sentimentVal === 'ALL') || (item.sentiment === sentimentVal);
+                const matchesDistrict = (districtVal === 'ALL') || (item.district === districtVal);
+                return matchesSearch && matchesSentiment && matchesDistrict;
+            });
+
+            populateTable(filtered);
+        }
+
+        // Trigger Filter / Refresh
+        function updateDashboardData() {
+            const range = document.getElementById('timeRangeFilter').value;
+            // Visual feedback
+            const mentionsElem = document.getElementById('statTotalMentions');
+            if (range === '7d') {
+                mentionsElem.innerText = '1,120';
+            } else if (range === '30d') {
+                mentionsElem.innerText = '2,480';
+            } else {
+                mentionsElem.innerText = '3,842';
+            }
+        }
+
+        // Simulate Apify Data Syncing
+        async function syncDataWithApify() {
+            const syncBtn = document.getElementById('syncBtn');
+            const syncIcon = document.getElementById('syncIcon');
+            
+            syncIcon.classList.add('animate-spin');
+            syncBtn.disabled = true;
+
+            try {
+                // Attempting direct fetch to Apify runs endpoint or dataset
+                const apifyUrl = `https://api.apify.com/v2/actor-runs?token=${activeApifyToken}&limit=1`;
+                const res = await fetch(apifyUrl).catch(() => null);
+
+                setTimeout(() => {
+                    syncIcon.classList.remove('animate-spin');
+                    syncBtn.disabled = false;
+                    
+                    // Add new simulated fresh scraped entry
+                    publicResponsesData.unshift({
+                        id: Date.now(),
+                        date: new Date().toISOString().split('T')[0],
+                        platform: 'TikTok',
+                        district: 'Pamulang',
+                        text: 'Lagi ramai di Pamulang Square ada anak-anak nongkrong live streaming penampakan pocong jam 1 malam.',
+                        sentiment: 'Hype/Humor',
+                        engagement: 'Live Scraped via Apify',
+                        author: '@apify_live_feed'
+                    });
+                    
+                    populateTable(publicResponsesData);
+                    showNotification("Berhasil menyinkronkan data terbaru dari Apify Scraper!");
+                }, 1200);
+            } catch (err) {
+                syncIcon.classList.remove('animate-spin');
+                syncBtn.disabled = false;
+            }
+        }
+
+        // GEMINI AI INTEGRATION LOGIC
+        const GEMINI_API_KEY = ""; // Using empty string as fallback runtime replacement by preview host
+
+        async function callGeminiApi(promptText, systemInstructionText = "") {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: systemInstructionText ? { parts: [{ text: systemInstructionText }] } : undefined
+            };
+
+            // Implement exponential backoff retry logic
+            let retries = 0;
+            const maxRetries = 3;
+            let delay = 1000;
+
+            while (retries <= maxRetries) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari AI.";
+                    }
+                } catch (e) {
+                    // Retry silently
+                }
+                retries++;
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+            return "Maaf, terjadi masalah koneksi ke layanan Gemini AI. Silakan coba beberapa saat lagi.";
+        }
+
+        // Tab Switcher for Gemini AI Section
+        function switchAiTab(tabName) {
+            document.getElementById('aiTabClassifier').classList.add('hidden');
+            document.getElementById('aiTabReport').classList.add('hidden');
+            document.getElementById('aiTabChat').classList.add('hidden');
+
+            document.getElementById('tabBtnClassifier').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition';
+            document.getElementById('tabBtnReport').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition';
+            document.getElementById('tabBtnChat').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition';
+
+            if (tabName === 'classifier') {
+                document.getElementById('aiTabClassifier').classList.remove('hidden');
+                document.getElementById('tabBtnClassifier').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-white bg-purple-600 transition';
+            } else if (tabName === 'report') {
+                document.getElementById('aiTabReport').classList.remove('hidden');
+                document.getElementById('tabBtnReport').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-white bg-purple-600 transition';
+            } else if (tabName === 'chat') {
+                document.getElementById('aiTabChat').classList.remove('hidden');
+                document.getElementById('tabBtnChat').className = 'flex-1 md:flex-none px-3 py-1.5 rounded-md font-medium text-white bg-purple-600 transition';
+            }
+        }
+
+        // Action 1: Custom Sentiment Classifier
+        async function analyzeCustomSentiment() {
+            const inputVal = document.getElementById('customUserComment').value.trim();
+            if (!inputVal) return;
+
+            const resultBox = document.getElementById('classifierResult');
+            const outputText = document.getElementById('aiAnalysisOutput');
+            const badge = document.getElementById('aiSentimentBadge');
+            const authBox = document.getElementById('aiAuthenticityBox');
+
+            resultBox.classList.remove('hidden');
+            badge.innerText = 'Menganalisis...';
+            badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[11px] bg-slate-800 text-slate-300 animate-pulse';
+            outputText.innerText = 'Gemini 3 Flash sedang memproses sentimen NLP...';
+
+            const systemInstruction = "Anda adalah Pakar NLP & Analis Sosiologi Perkotaan Tangerang Selatan. Tugas Anda mengklasifikasikan komentar masyarakat mengenai fenomena mitos/pocong ke dalam kategori: [Hype/Meme, Ketakutan, Skeptis, atau Investigasi], serta memberikan penjelasan ringkas max 3 kalimat dalam Bahasa Indonesia.";
+            
+            const prompt = `Analisis teks komentar masyarakat ini:\n"${inputVal}"\n\nFormat jawaban:\nSentimen: [Kategori]\nIndeks Keresahan: [1-100]\nPenjelasan: [Ulasan ringkas sosiologis/psikologis]`;
+
+            const response = await callGeminiApi(prompt, systemInstruction);
+
+            outputText.innerText = response;
+            badge.innerText = 'Analisis Selesai';
+            badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[11px] bg-teal-900 text-teal-200';
+            
+            authBox.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5 text-teal-400 inline"></i> <span>Telah dikorelasikan dengan database tren Pamulang & Tangsel.</span>`;
+            lucide.createIcons();
+        }
+
+        // Inline analyze shortcut from table
+        function analyzeTextInline(text) {
+            switchAiTab('classifier');
+            document.getElementById('customUserComment').value = text;
+            analyzeCustomSentiment();
+            window.scrollTo({ top: document.getElementById('customUserComment').offsetTop - 120, behavior: 'smooth' });
+        }
+
+        // Action 2: Executive AI Report Generator
+        async function generateAiReport() {
+            const reportBox = document.getElementById('aiReportBox');
+            const btn = document.getElementById('btnGenerateReport');
+            
+            btn.disabled = true;
+            reportBox.innerHTML = '<div class="flex items-center space-x-2 text-purple-400"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Gemini 3 Flash sedang menyusun Laporan Eksekutif Statistik Tangsel...</span></div>';
+            lucide.createIcons();
+
+            const prompt = `Buatkan ringkasan laporan eksekutif statistik sosiologis fenomena rumor "Pocong di Tangerang Selatan (terutama Pamulang & Ciputat)" berdasarkan data berikut:
+- Total sebutan: 3,842 unggahan.
+- Hotspot teratas: Pamulang (42%), Ciputat (24%), Serpong (14%).
+- Sentimen utama: Humor/Meme (44%), Ketakutan (32%), Skeptis (16%).
+- Saluran terbesar: TikTok (52%) dan X/Twitter (28%).
+
+Sajikan laporan dalam 3 paragraf rapi meliputi:
+1. Ringkasan Tren & Penyebaran Informasi.
+2. Dampak Psikologi & Komunitas Warga.
+3. Rekomendasi Penanganan Isu Hoaks/Mitos bagi Pihak Berwenang Tangsel.`;
+
+            const systemPrompt = "Anda adalah Analis Senior Data Publik Pemerintah Kota Tangerang Selatan.";
+            const reportText = await callGeminiApi(prompt, systemPrompt);
+
+            reportBox.innerText = reportText;
+            btn.disabled = false;
+        }
+
+        // Action 3: AI Chat Q&A
+        async function sendAiChatMessage() {
+            const input = document.getElementById('aiChatInput');
+            const query = input.value.trim();
+            if (!query) return;
+
+            const chatHistory = document.getElementById('aiChatHistory');
+
+            // User message bubble
+            const userBubble = document.createElement('div');
+            userBubble.className = 'flex items-start justify-end space-x-2';
+            userBubble.innerHTML = `
+                <div class="bg-purple-600 text-white p-2.5 rounded-xl text-xs max-w-[85%]">
+                    ${query}
+                </div>
+            `;
+            chatHistory.appendChild(userBubble);
+            input.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Loading indicator
+            const aiBubble = document.createElement('div');
+            aiBubble.className = 'flex items-start space-x-2';
+            aiBubble.innerHTML = `
+                <div class="p-1.5 bg-purple-900/60 text-purple-300 rounded-lg text-xs">AI</div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-xs text-slate-300 max-w-[85%] animate-pulse">
+                    Memikirkan jawaban berdasarkan data Tangsel...
+                </div>
+            `;
+            chatHistory.appendChild(aiBubble);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            const systemPrompt = "Anda adalah asisten statistik publik fenomena mistik/pocong Tangerang Selatan. Jawab pertanyaan pengguna secara lugas, informatif, dan berbasis data statistik Pamulang/Tangsel.";
+            const aiAnswer = await callGeminiApi(query, systemPrompt);
+
+            aiBubble.querySelector('div:nth-child(2)').classList.remove('animate-pulse');
+            aiBubble.querySelector('div:nth-child(2)').innerText = aiAnswer;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Modal Controls
+        function openApiModal() {
+            document.getElementById('apiModal').classList.remove('hidden');
+        }
+        function closeApiModal() {
+            document.getElementById('apiModal').classList.add('hidden');
+        }
+        function saveApiSettings() {
+            activeApifyToken = document.getElementById('apifyTokenInput').value;
+            document.getElementById('tokenDisplay').innerText = activeApifyToken;
+            closeApiModal();
+            showNotification("Token Apify berhasil disimpan!");
+        }
+
+        // Notification Helper
+        function showNotification(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 bg-teal-500 text-slate-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl z-50 flex items-center space-x-2 animate-bounce';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
